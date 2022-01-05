@@ -1,0 +1,55 @@
+C:=LinearCode(Matrix(GF(2),[1110000000,0000111111]));
+C;
+
+C:=LinearCode<GF(2),8|[1,1,1,0,1,0,1,1],[0,0,0,1,0,1,1,1]>;
+C;
+CoveringRadius(C);
+Ball:=function(n,cw,r)
+B:={};
+for i:=1 to r do
+for c in VectorSpace(GF(2),n) do
+if Distance(cw,c) le r then
+ Include(~B,c);
+end if;
+end for;
+end for;
+return B;
+end function;
+
+Sphere:=function(n,cw,r)
+sp:={};
+for c in VectorSpace(GF(2),n) do
+if Distance(cw,c) eq r then
+ Include(~sp,c);
+end if;
+end for;
+return sp;
+end function;
+
+//Function Support of a Set
+Supp:=function(Set)
+Su:={};
+for ss in Set do
+Su:=Su join Support(ss);
+end for;
+return Su;
+end function;
+P:=[];
+n:=Length(C);
+for i:=1 to Length(C) do
+num:=0;
+S:=Sphere(n,C!0,i);
+den:=#S;
+Un:={};
+	for c in C do
+	if Weight(c) ne 0 then
+		Un:=Un join Ball(n,c,i);
+	end if;
+	end for;
+	S:=S diff Un;
+	num:=num+#S;
+
+P[i]:=Re(num/den);
+end for;
+P;
+

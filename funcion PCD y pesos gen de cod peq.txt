@@ -1,0 +1,1385 @@
+﻿Intersection:=function(n,w,r)//function of number of vectors in intersection sphere and ball
+vv:=0;
+for j:=Ceiling(w/2) to r do
+vv:=vv+Binomial(w,j)*Binomial((n-w),(r-j));
+end for;
+return vv;
+end function;
+
+Ball:=function(n,cw,r) //searching ball function
+B:={};
+for i:=1 to r do
+for c in VectorSpace(GF(2),n) do
+if Distance(cw,c) le r then
+ Include(~B,c);
+end if;
+end for;
+end for;
+return B;
+end function;
+
+Ballc:=function(n,C,cw,r)  //constructive ball function C code cw codeword
+B:={cw};
+t:=0;
+ze:=C!0;
+Ca:={cw};
+Aux:={};
+tt:=ze;
+Sum:={};
+for i:=1 to Length(C) do
+tt[i]:=1;
+Include(~Sum,tt);
+tt[i]:=0;
+end for;
+while r gt t do
+for c in Ca do
+for cc in Sum do
+Aux:=Aux join {c+cc};
+end for;
+B:=B join Aux;
+end for;
+Ca:=Aux;
+t:=t+1;
+end while;
+return B;
+end function;
+
+Spherec:=function(n,C,cw,r)  //constructive spherefunction C code cw codeword
+S:={cw};
+t:=0;
+ze:=C!0;
+Ca:={cw};
+Aux:={};
+tt:=ze;
+Sum:={};
+for i:=1 to Length(C) do
+tt[i]:=1;
+Include(~Sum,tt);
+tt[i]:=0;
+end for;
+for t:=1 to  r do
+for c in Ca do
+for cc in Sum do
+Aux:=Aux join {c+cc};
+end for;
+end for;
+Ca:=Aux;
+end for;
+for c in Ca do
+if Distance(cw,c) ne r then
+Exclude(~Ca,c);
+end if;
+end for;
+S:=Ca;
+return S;
+end function;
+
+Sphere:=function(n,cw,r)
+sp:={};
+for c in VectorSpace(GF(2),n) do
+if Distance(cw,c) eq r then
+ Include(~sp,c);
+end if;
+end for;
+return sp;
+end function;
+
+//Function Support of a Set
+Supp:=function(Set)
+Su:={};
+for ss in Set do
+Su:=Su join Support(ss);
+end for;
+return Su;
+end function;
+
+
+C:=HammingCode(GF(2),3); //[7,4,3]
+d:=[];
+d[1]:=MinimumWeight(C);
+t2:=Length(C);
+cont1:={};
+cont2:={};
+t3:=t2;
+for v1 in C do
+Ge:=ZeroMatrix(GF(2),1,Length(C));
+Ge3:=Ge;
+	for v2 in C do
+	if v1 ne v2 then
+		Ge:=VerticalJoin(Ge,v1);
+		Ge:=VerticalJoin(Ge,v2);
+		C2:=LinearCode(Ge);
+		if Dimension(C2) eq 2 then
+			st:=#Supp(C2);
+			if st lt t2 then
+				t2:=st;
+				cont1:={};		
+			end if;
+			if st eq t2 then
+				Include(~cont1,C2);
+			end if;
+		end if;
+	end if;
+	for v3 in C do	
+	
+	if v1 ne v2 and v2 ne v3 and v1 ne v3 and v1+v2 ne v3 then
+		Ge3:=VerticalJoin(Ge,v3);
+		C3:=LinearCode(Ge3);
+		if Dimension(C3) eq 3 then
+			st3:=#Supp(C3);
+			if st3 lt t3 then
+				t3:=st3;
+				cont2:={};		
+			end if;
+			if st3 eq t3 then
+				Include(~cont2,C3);
+			end if;
+		end if;
+	end if;
+	
+	end for;
+	end for;
+
+end for;
+d[2]:=t2;
+d[3]:=t3;
+d[4]:=#Supp(C);
+d;
+WeightDistribution(C);
+#cont1;
+#cont2;
+//correct up to i errors
+P:=[];
+n:=Length(C);
+for i:=1 to Length(C) do
+num:=0;
+for j:=0 to i do
+
+S:=Sphere(n,C!0,j);
+Un:={};
+	for c in C do
+	if Weight(c) ne 0 then
+		Un:=Un join Ball(n,c,j);
+	end if;
+	end for;
+	S:=S diff Un;
+	num:=num+#S;
+
+end for;
+P[i]:=num/#Ball(n,Random(C),i);
+Re(P[i]);
+end for;
+P;
+//correct exactly i errors
+P:=[];
+n:=Length(C);
+for i:=1 to Length(C) do
+num:=0;
+S:=Sphere(n,C!0,i);
+den:=#S;
+Un:={};
+	for c in C do
+	if Weight(c) ne 0 then
+		Un:=Un join Ball(n,c,i);
+	end if;
+	end for;
+	S:=S diff Un;
+	num:=num+#S;
+
+P[i]:=Re(num/den);
+end for;
+P;
+
+
+
+///// Conjunto minimal que cubre intersección
+z:=C!0;
+mw:=MinimumWords(C);
+cmw:=Random(mw);
+Conj:=[];
+for t:=1 to Length(C) do
+T:={};
+for c in C do
+if c ne z then
+T:=T join (Sphere(Length(C),z,t) meet Ball(Length(C),c, t));
+end if;
+end for;//c
+Conj[t]:=T;
+TT:={};
+for c in mw do
+
+TT:=TT join (Sphere(Length(C),z,t) meet Ball(Length(C),c, t));
+
+end for;
+t;
+T eq TT;
+T diff TT;
+end for;//t
+Conj;
+
+
+
+////////
+
+C:=HammingCode(GF(2),4);
+d:=MinimumWeight(C);
+d;
+d1:=Floor((d-1)/2);
+d1;
+z:=C!0;
+B0:=Ball(15,z,d1);
+#B0;
+mw:=MinimumWords(C);
+cm:=Random(mw);
+cm;
+for t:=1 to 15 do
+#(Sphere(15,cm,t) meet Ball(15,z,t));
+end for;
+//////
+
+/////// construction of minimal set
+//C:=HammingCode(GF(2),3);
+//C:=SimplexCode(4);
+C:=BKLC(GF(2),12,6);
+z:=C!0;
+mw:=MinimumWords(C);
+cmw:=Random(mw);
+//Conjcw:=[];//usadas para descubrir la influencia de palabras restantes
+//Conjint:=[];
+//ConjOrd:=[];
+for t:=1 to Length(C) do
+ConjOrd:=[];
+T:={};
+for c in mw do
+T:=T join (Sphere(Length(C),z,t) meet Ball(Length(C),c, t));
+end for;
+T1:=T;
+conjm:={};
+mw1:=mw;
+for c in mw1 do
+sc:=(Sphere(Length(C),z,t) meet Ball(Length(C),c, t));
+if sc subset T1 and sc ne {} then
+Include(~conjm,c);
+T1:=T1 diff sc;
+end if;
+end for;
+mw1:=mw1 diff conjm;
+#mw1;
+#conjm;
+tt:=0;//// para descubrir influencia de las palabras restantes
+for c in mw1 do
+sc:=(Sphere(Length(C),z,t) meet Ball(Length(C),c, t) meet T1);
+if IsEmpty(sc) then
+else
+Include(~conjm,c);
+tt:=tt+1;
+ConjOrd[tt]:=[#(Sphere(Length(C),z,t) meet Ball(Length(C),c, t) meet T1)];
+T1:=T1 diff sc;
+end if;
+
+if IsEmpty(T1)  then
+break;
+end if;
+//Conjcw[tt]:=[c];
+//Conjint[tt]:=[Sphere(Length(C),z,t) meet Ball(Length(C),c, t) meet T1];
+//ConjOrd[tt]:=[#(Sphere(Length(C),z,t) meet Ball(Length(C),c, t) meet T1)];
+end for;// c mw1
+t;
+//#T;
+conjm;
+//Conjcw;
+//Conjint;
+ConjOrd;
+end for;//t
+//Conj;
+
+mw;
+////////
+
+
+hamming 7 // enough with mw to cover intersection with ball center at 0
+[
+    {
+        (0 0 0 0 0 1 0),
+        (0 0 1 0 0 0 0),
+        (0 0 0 0 0 0 1),
+        (0 0 0 1 0 0 0),
+        (0 1 0 0 0 0 0),
+        (1 0 0 0 0 0 0),
+        (0 0 0 0 1 0 0)
+    },
+    {
+        (0 0 0 0 0 1 1),
+        (1 0 0 1 0 0 0),
+        (0 0 0 1 1 0 0),
+        (0 0 1 0 0 0 1),
+        (0 1 0 1 0 0 0),
+        (0 0 0 1 0 1 0),
+        (0 0 1 1 0 0 0),
+        (0 0 0 1 0 0 1),
+        (1 0 0 0 1 0 0),
+        (1 1 0 0 0 0 0),
+        (0 1 0 0 1 0 0),
+        (1 0 0 0 0 1 0),
+        (0 0 0 0 1 1 0),
+        (0 1 0 0 0 1 0),
+        (1 0 1 0 0 0 0),
+        (0 0 1 0 1 0 0),
+        (0 1 1 0 0 0 0),
+        (0 0 1 0 0 1 0),
+        (1 0 0 0 0 0 1),
+        (0 0 0 0 1 0 1),
+        (0 1 0 0 0 0 1)
+    },
+    {
+        (0 0 0 1 1 1 0),
+        (1 0 1 0 0 0 1),
+        (0 1 0 0 1 0 1),
+        (0 0 1 1 1 0 0),
+        (1 0 0 1 0 1 0),
+        (1 1 0 0 0 0 1),
+        (1 0 1 1 0 0 0),
+        (0 1 0 1 1 0 0),
+        (0 0 1 0 1 1 0),
+        (1 1 0 1 0 0 0),
+        (0 0 0 1 0 1 1),
+        (1 0 1 0 0 1 0),
+        (0 1 0 0 1 1 0),
+        (0 0 1 1 0 0 1),
+        (0 1 1 0 1 0 0),
+        (1 1 0 0 0 1 0),
+        (1 1 1 0 0 0 0),
+        (0 1 0 1 0 0 1),
+        (0 0 1 0 0 1 1),
+        (0 1 0 0 0 1 1),
+        (0 0 1 1 0 1 0),
+        (0 1 1 0 0 0 1),
+        (0 1 0 1 0 1 0),
+        (0 1 1 1 0 0 0),
+        (1 0 0 0 1 0 1),
+        (1 0 0 1 1 0 0),
+        (0 1 1 0 0 1 0),
+        (1 0 0 0 1 1 0),
+        (1 0 1 0 1 0 0),
+        (0 0 0 1 1 0 1),
+        (1 0 0 1 0 0 1),
+        (1 1 0 0 1 0 0),
+        (0 0 0 0 1 1 1),
+        (0 0 1 0 1 0 1),
+        (1 0 0 0 0 1 1)
+    },
+    {
+        (1 1 0 1 0 1 0),
+        (1 1 1 1 0 0 0),
+        (0 0 1 1 0 1 1),
+        (0 1 1 0 1 1 0),
+        (1 1 1 0 0 1 0),
+        (0 1 0 1 0 1 1),
+        (0 1 1 1 0 0 1),
+        (1 0 0 1 1 0 1),
+        (0 1 1 0 0 1 1),
+        (0 1 1 1 0 1 0),
+        (1 0 0 0 1 1 1),
+        (1 0 1 0 1 0 1),
+        (1 0 0 1 1 1 0),
+        (1 1 0 0 1 0 1),
+        (1 0 1 1 1 0 0),
+        (1 1 0 1 1 0 0),
+        (1 0 1 0 1 1 0),
+        (0 0 0 1 1 1 1),
+        (0 0 1 1 1 0 1),
+        (1 0 0 1 0 1 1),
+        (1 1 0 0 1 1 0),
+        (1 0 1 1 0 0 1),
+        (1 1 1 0 1 0 0),
+        (0 1 0 1 1 0 1),
+        (0 0 1 0 1 1 1),
+        (1 1 0 1 0 0 1),
+        (1 0 1 0 0 1 1),
+        (0 1 0 0 1 1 1),
+        (0 0 1 1 1 1 0),
+        (0 1 1 0 1 0 1),
+        (1 1 0 0 0 1 1),
+        (1 0 1 1 0 1 0),
+        (0 1 0 1 1 1 0),
+        (1 1 1 0 0 0 1),
+        (0 1 1 1 1 0 0)
+    },
+    {
+        (1 1 1 0 1 1 0),
+        (1 1 0 0 1 1 1),
+        (1 1 1 0 1 0 1),
+        (1 1 0 1 1 1 0),
+        (1 0 1 0 1 1 1),
+        (1 1 1 0 0 1 1),
+        (0 1 1 0 1 1 1),
+        (1 1 1 1 1 0 0),
+        (1 0 1 1 1 1 0),
+        (1 1 1 1 0 1 0),
+        (1 1 0 1 1 0 1),
+        (0 1 1 1 1 1 0),
+        (1 0 0 1 1 1 1),
+        (1 1 0 1 0 1 1),
+        (1 0 1 1 1 0 1),
+        (0 1 0 1 1 1 1),
+        (1 1 1 1 0 0 1),
+        (0 1 1 1 1 0 1),
+        (1 0 1 1 0 1 1),
+        (0 0 1 1 1 1 1),
+        (0 1 1 1 0 1 1)
+    },
+    {
+        (1 0 1 1 1 1 1),
+        (1 1 1 0 1 1 1),
+        (1 1 1 1 1 1 0),
+        (1 1 0 1 1 1 1),
+        (1 1 1 1 1 0 1),
+        (1 1 1 1 0 1 1),
+        (0 1 1 1 1 1 1)
+    },
+    {
+        (1 1 1 1 1 1 1)
+    }
+]
+
+
+simplex 7 //enough with mw
+
+[
+    {
+        (0 0 0 0 0 1 0),
+        (0 0 1 0 0 0 0),
+        (0 0 0 0 0 0 1),
+        (0 0 0 1 0 0 0),
+        (0 1 0 0 0 0 0),
+        (1 0 0 0 0 0 0),
+        (0 0 0 0 1 0 0)
+    },
+    {
+        (0 0 0 0 0 1 1),
+        (1 0 0 1 0 0 0),
+        (0 0 0 1 1 0 0),
+        (0 0 1 0 0 0 1),
+        (0 1 0 1 0 0 0),
+        (0 0 0 1 0 1 0),
+        (0 0 1 1 0 0 0),
+        (0 0 0 1 0 0 1),
+        (1 0 0 0 1 0 0),
+        (1 1 0 0 0 0 0),
+        (0 1 0 0 1 0 0),
+        (1 0 0 0 0 1 0),
+        (0 0 0 0 1 1 0),
+        (0 1 0 0 0 1 0),
+        (1 0 1 0 0 0 0),
+        (0 0 1 0 1 0 0),
+        (0 1 1 0 0 0 0),
+        (0 0 1 0 0 1 0),
+        (1 0 0 0 0 0 1),
+        (0 0 0 0 1 0 1),
+        (0 1 0 0 0 0 1)
+    },
+    {
+        (0 0 0 1 1 1 0),
+        (1 0 1 0 0 0 1),
+        (0 1 0 0 1 0 1),
+        (0 0 1 1 1 0 0),
+        (1 0 0 1 0 1 0),
+        (1 1 0 0 0 0 1),
+        (1 0 1 1 0 0 0),
+        (0 1 0 1 1 0 0),
+        (0 0 1 0 1 1 0),
+        (1 1 0 1 0 0 0),
+        (0 0 0 1 0 1 1),
+        (1 0 1 0 0 1 0),
+        (0 1 0 0 1 1 0),
+        (0 0 1 1 0 0 1),
+        (0 1 1 0 1 0 0),
+        (1 1 0 0 0 1 0),
+        (1 1 1 0 0 0 0),
+        (0 1 0 1 0 0 1),
+        (0 0 1 0 0 1 1),
+        (0 1 0 0 0 1 1),
+        (0 0 1 1 0 1 0),
+        (0 1 1 0 0 0 1),
+        (0 1 0 1 0 1 0),
+        (0 1 1 1 0 0 0),
+        (1 0 0 0 1 0 1),
+        (1 0 0 1 1 0 0),
+        (0 1 1 0 0 1 0),
+        (1 0 0 0 1 1 0),
+        (1 0 1 0 1 0 0),
+        (0 0 0 1 1 0 1),
+        (1 0 0 1 0 0 1),
+        (1 1 0 0 1 0 0),
+        (0 0 0 0 1 1 1),
+        (0 0 1 0 1 0 1),
+        (1 0 0 0 0 1 1)
+    },
+    {
+        (1 1 0 1 0 1 0),
+        (1 1 1 1 0 0 0),
+        (0 0 1 1 0 1 1),
+        (0 1 1 0 1 1 0),
+        (1 1 1 0 0 1 0),
+        (0 1 0 1 0 1 1),
+        (0 1 1 1 0 0 1),
+        (1 0 0 1 1 0 1),
+        (0 1 1 0 0 1 1),
+        (0 1 1 1 0 1 0),
+        (1 0 0 0 1 1 1),
+        (1 0 1 0 1 0 1),
+        (1 0 0 1 1 1 0),
+        (1 1 0 0 1 0 1),
+        (1 0 1 1 1 0 0),
+        (1 1 0 1 1 0 0),
+        (1 0 1 0 1 1 0),
+        (0 0 0 1 1 1 1),
+        (0 0 1 1 1 0 1),
+        (1 0 0 1 0 1 1),
+        (1 1 0 0 1 1 0),
+        (1 0 1 1 0 0 1),
+        (1 1 1 0 1 0 0),
+        (0 1 0 1 1 0 1),
+        (0 0 1 0 1 1 1),
+        (1 1 0 1 0 0 1),
+        (1 0 1 0 0 1 1),
+        (0 1 0 0 1 1 1),
+        (0 0 1 1 1 1 0),
+        (0 1 1 0 1 0 1),
+        (1 1 0 0 0 1 1),
+        (1 0 1 1 0 1 0),
+        (0 1 0 1 1 1 0),
+        (1 1 1 0 0 0 1),
+        (0 1 1 1 1 0 0)
+    },
+    {
+        (1 1 1 0 1 1 0),
+        (1 1 0 0 1 1 1),
+        (1 1 1 0 1 0 1),
+        (1 1 0 1 1 1 0),
+        (1 0 1 0 1 1 1),
+        (1 1 1 0 0 1 1),
+        (0 1 1 0 1 1 1),
+        (1 1 1 1 1 0 0),
+        (1 0 1 1 1 1 0),
+        (1 1 1 1 0 1 0),
+        (1 1 0 1 1 0 1),
+        (0 1 1 1 1 1 0),
+        (1 0 0 1 1 1 1),
+        (1 1 0 1 0 1 1),
+        (1 0 1 1 1 0 1),
+        (0 1 0 1 1 1 1),
+        (1 1 1 1 0 0 1),
+        (0 1 1 1 1 0 1),
+        (1 0 1 1 0 1 1),
+        (0 0 1 1 1 1 1),
+        (0 1 1 1 0 1 1)
+    },
+    {
+        (1 0 1 1 1 1 1),
+        (1 1 1 0 1 1 1),
+        (1 1 1 1 1 1 0),
+        (1 1 0 1 1 1 1),
+        (1 1 1 1 1 0 1),
+        (1 1 1 1 0 1 1),
+        (0 1 1 1 1 1 1)
+    },
+    {
+        (1 1 1 1 1 1 1)
+    }
+]
+
+Hamming 15 // for t=1 covered by codewords of minimum weight
+
+
+Simplex 15 // enough to cover with mw
+
+BKLC 12,6,6 // enough with mw
+
+
+
+////Resultados conjunto minimal hamming 743
+1
+[]
+[]
+[]
+2
+[]
+[]
+[]
+3
+[
+    [
+        (1 0 1 0 0 0 1)
+    ],
+    [
+        (1 1 0 1 0 0 0)
+    ],
+    [
+        (0 1 1 0 1 0 0)
+    ],
+    [
+        (0 0 1 1 0 1 0)
+    ],
+    [
+        (1 0 0 0 1 1 0)
+    ],
+    [
+        (0 0 0 1 1 0 1)
+    ]
+]
+[
+    [
+        {
+            (0 0 1 1 0 0 1),
+            (0 1 1 0 0 0 1),
+            (1 0 0 0 1 0 1),
+            (1 0 1 1 0 0 0),
+            (1 1 1 0 0 0 0),
+            (1 0 1 0 0 0 1),
+            (1 0 0 0 0 1 1),
+            (1 0 0 1 0 0 1),
+            (1 1 0 0 0 0 1),
+            (0 0 1 0 1 0 1),
+            (1 0 1 0 1 0 0),
+            (0 0 1 0 0 1 1),
+            (1 0 1 0 0 1 0)
+        }
+    ],
+    [
+        {
+            (0 1 0 1 0 1 0),
+            (1 0 0 1 1 0 0),
+            (1 1 0 0 1 0 0),
+            (1 0 1 1 0 0 0),
+            (1 1 1 0 0 0 0),
+            (1 0 0 1 0 1 0),
+            (1 1 0 0 0 1 0),
+            (0 1 0 1 0 0 1),
+            (1 1 0 1 0 0 0),
+            (1 0 0 1 0 0 1),
+            (1 1 0 0 0 0 1),
+            (0 1 0 1 1 0 0),
+            (0 1 1 1 0 0 0)
+        }
+    ],
+    [
+        {
+            (0 1 1 0 0 1 0),
+            (0 1 0 0 1 0 1),
+            (0 0 1 0 1 0 1),
+            (0 1 0 1 1 0 0),
+            (0 1 1 0 0 0 1),
+            (0 0 1 1 1 0 0),
+            (0 1 1 1 0 0 0),
+            (1 1 0 0 1 0 0),
+            (0 1 0 0 1 1 0),
+            (1 0 1 0 1 0 0),
+            (1 1 1 0 0 0 0),
+            (0 1 1 0 1 0 0),
+            (0 0 1 0 1 1 0)
+        }
+    ],
+    [
+        {
+            (0 0 1 1 0 0 1),
+            (0 1 0 1 0 1 0),
+            (0 0 0 1 0 1 1),
+            (1 0 1 1 0 0 0),
+            (1 0 0 1 0 1 0),
+            (0 0 1 0 1 1 0),
+            (0 0 1 1 1 0 0),
+            (0 0 0 1 1 1 0),
+            (0 0 1 1 0 1 0),
+            (0 1 1 0 0 1 0),
+            (0 0 1 0 0 1 1),
+            (1 0 1 0 0 1 0),
+            (0 1 1 1 0 0 0)
+        }
+    ],
+    [
+        {
+            (1 0 0 1 1 0 0),
+            (1 1 0 0 1 0 0),
+            (1 0 0 0 1 0 1),
+            (1 0 0 1 0 1 0),
+            (0 0 1 0 1 1 0),
+            (1 1 0 0 0 1 0),
+            (1 0 0 0 0 1 1),
+            (0 0 0 1 1 1 0),
+            (0 1 0 0 1 1 0),
+            (0 0 0 0 1 1 1),
+            (1 0 1 0 1 0 0),
+            (1 0 0 0 1 1 0),
+            (1 0 1 0 0 1 0)
+        }
+    ],
+    [
+        {
+            (0 0 1 1 0 0 1),
+            (1 0 0 1 1 0 0),
+            (0 0 0 1 0 1 1),
+            (1 0 0 0 1 0 1),
+            (0 1 0 1 0 0 1),
+            (0 0 1 1 1 0 0),
+            (1 0 0 1 0 0 1),
+            (0 0 0 1 1 1 0),
+            (0 0 1 0 1 0 1),
+            (0 0 0 0 1 1 1),
+            (0 1 0 1 1 0 0),
+            (0 0 0 1 1 0 1),
+            (0 1 0 0 1 0 1)
+        }
+    ]
+]
+[
+    [ 13 ],
+    [ 13 ],
+    [ 13 ],
+    [ 13 ],
+    [ 13 ],
+    [ 13 ]
+]
+4
+[
+    [
+        (1 0 1 0 0 0 1)
+    ],
+    [
+        (1 1 0 1 0 0 0)
+    ],
+    [
+        (0 1 1 0 1 0 0)
+    ],
+    [
+        (0 0 1 1 0 1 0)
+    ],
+    [
+        (1 0 0 0 1 1 0)
+    ],
+    [
+        (0 0 0 1 1 0 1)
+    ]
+]
+[
+    [
+        {
+            (1 0 1 0 1 1 0),
+            (1 1 1 0 0 1 0),
+            (1 1 0 0 1 0 1),
+            (1 0 0 0 1 1 1),
+            (1 1 0 0 0 1 1),
+            (1 0 1 0 1 0 1),
+            (1 1 1 0 0 0 1),
+            (0 1 1 0 1 0 1),
+            (1 0 1 0 0 1 1),
+            (1 0 1 1 1 0 0),
+            (0 0 1 0 1 1 1),
+            (1 1 1 1 0 0 0),
+            (0 1 1 0 0 1 1),
+            (1 0 1 1 0 1 0),
+            (1 0 0 1 1 0 1),
+            (1 1 0 1 0 0 1),
+            (1 0 0 1 0 1 1),
+            (1 0 1 1 0 0 1),
+            (0 0 1 1 1 0 1),
+            (0 1 1 1 0 0 1),
+            (0 0 1 1 0 1 1),
+            (1 1 1 0 1 0 0)
+        }
+    ],
+    [
+        {
+            (1 1 1 0 0 1 0),
+            (1 1 0 0 1 0 1),
+            (1 1 0 0 0 1 1),
+            (1 1 0 1 1 0 0),
+            (1 1 1 0 0 0 1),
+            (1 0 0 1 1 1 0),
+            (1 1 0 1 0 1 0),
+            (0 1 0 1 1 1 0),
+            (1 0 1 1 1 0 0),
+            (1 1 1 1 0 0 0),
+            (0 1 1 1 1 0 0),
+            (1 0 1 1 0 1 0),
+            (1 0 0 1 1 0 1),
+            (1 1 0 1 0 0 1),
+            (0 1 1 1 0 1 0),
+            (0 1 0 1 1 0 1),
+            (1 0 0 1 0 1 1),
+            (0 1 0 1 0 1 1),
+            (1 0 1 1 0 0 1),
+            (0 1 1 1 0 0 1),
+            (1 1 0 0 1 1 0),
+            (1 1 1 0 1 0 0)
+        }
+    ],
+    [
+        {
+            (1 1 0 0 1 1 0),
+            (0 1 0 1 1 1 0),
+            (1 1 1 1 0 0 0),
+            (1 1 0 0 1 0 1),
+            (0 1 0 1 1 0 1),
+            (1 0 1 1 1 0 0),
+            (0 1 1 0 1 1 0),
+            (0 1 1 0 1 0 1),
+            (1 1 1 0 0 1 0),
+            (0 1 1 1 0 1 0),
+            (0 1 0 0 1 1 1),
+            (1 1 1 0 0 0 1),
+            (1 0 1 0 1 1 0),
+            (0 1 1 1 0 0 1),
+            (0 0 1 1 1 1 0),
+            (1 0 1 0 1 0 1),
+            (0 0 1 1 1 0 1),
+            (1 1 0 1 1 0 0),
+            (0 1 1 0 0 1 1),
+            (1 1 1 0 1 0 0),
+            (0 1 1 1 1 0 0),
+            (0 0 1 0 1 1 1)
+        }
+    ],
+    [
+        {
+            (1 0 1 0 1 1 0),
+            (1 1 1 0 0 1 0),
+            (0 1 1 0 1 1 0),
+            (1 0 0 1 1 1 0),
+            (1 0 1 0 0 1 1),
+            (1 1 0 1 0 1 0),
+            (0 1 0 1 1 1 0),
+            (0 0 1 0 1 1 1),
+            (1 0 1 1 1 0 0),
+            (1 1 1 1 0 0 0),
+            (0 1 1 0 0 1 1),
+            (0 1 1 1 1 0 0),
+            (1 0 1 1 0 1 0),
+            (0 0 1 1 1 1 0),
+            (0 1 1 1 0 1 0),
+            (1 0 0 1 0 1 1),
+            (0 0 0 1 1 1 1),
+            (0 1 0 1 0 1 1),
+            (1 0 1 1 0 0 1),
+            (0 0 1 1 1 0 1),
+            (0 1 1 1 0 0 1),
+            (0 0 1 1 0 1 1)
+        }
+    ],
+    [
+        {
+            (1 0 1 0 1 1 0),
+            (1 1 1 0 0 1 0),
+            (1 1 0 0 1 0 1),
+            (0 1 1 0 1 1 0),
+            (1 0 0 0 1 1 1),
+            (1 1 0 0 0 1 1),
+            (0 1 0 0 1 1 1),
+            (1 1 0 1 1 0 0),
+            (1 0 1 0 1 0 1),
+            (1 0 0 1 1 1 0),
+            (1 0 1 0 0 1 1),
+            (1 1 0 1 0 1 0),
+            (0 1 0 1 1 1 0),
+            (0 0 1 0 1 1 1),
+            (1 0 1 1 1 0 0),
+            (1 0 1 1 0 1 0),
+            (1 0 0 1 1 0 1),
+            (0 0 1 1 1 1 0),
+            (1 0 0 1 0 1 1),
+            (0 0 0 1 1 1 1),
+            (1 1 0 0 1 1 0),
+            (1 1 1 0 1 0 0)
+        }
+    ],
+    [
+        {
+            (0 1 0 1 1 1 0),
+            (1 1 0 0 1 0 1),
+            (0 0 1 1 0 1 1),
+            (0 1 0 1 1 0 1),
+            (1 0 1 1 1 0 0),
+            (0 1 1 0 1 0 1),
+            (1 1 0 1 0 0 1),
+            (1 0 0 1 1 1 0),
+            (1 0 0 1 1 0 1),
+            (0 1 0 0 1 1 1),
+            (0 1 1 1 0 0 1),
+            (0 0 1 1 1 1 0),
+            (1 0 1 0 1 0 1),
+            (0 0 1 1 1 0 1),
+            (0 1 0 1 0 1 1),
+            (1 0 0 0 1 1 1),
+            (1 1 0 1 1 0 0),
+            (1 0 1 1 0 0 1),
+            (0 0 0 1 1 1 1),
+            (0 1 1 1 1 0 0),
+            (0 0 1 0 1 1 1),
+            (1 0 0 1 0 1 1)
+        }
+    ]
+]
+[
+    [ 22 ],
+    [ 22 ],
+    [ 22 ],
+    [ 22 ],
+    [ 22 ],
+    [ 22 ]
+]
+5
+[
+    [
+        (1 0 1 0 0 0 1)
+    ],
+    [
+        (1 1 0 1 0 0 0)
+    ],
+    [
+        (0 1 1 0 1 0 0)
+    ],
+    [
+        (0 0 1 1 0 1 0)
+    ],
+    [
+        (1 0 0 0 1 1 0)
+    ],
+    [
+        (0 0 0 1 1 0 1)
+    ]
+]
+[
+    [
+        {
+            (1 1 1 0 1 1 0),
+            (1 1 0 0 1 1 1),
+            (1 1 1 0 1 0 1),
+            (1 0 1 0 1 1 1),
+            (1 1 1 0 0 1 1),
+            (0 1 1 0 1 1 1),
+            (1 1 1 1 1 0 0),
+            (1 0 1 1 1 1 0),
+            (1 1 1 1 0 1 0),
+            (1 1 0 1 1 0 1),
+            (1 0 0 1 1 1 1),
+            (1 1 0 1 0 1 1),
+            (1 0 1 1 1 0 1),
+            (1 1 1 1 0 0 1),
+            (0 1 1 1 1 0 1),
+            (1 0 1 1 0 1 1),
+            (0 0 1 1 1 1 1),
+            (0 1 1 1 0 1 1)
+        }
+    ],
+    [
+        {
+            (1 1 1 0 1 1 0),
+            (1 1 0 0 1 1 1),
+            (1 1 1 0 1 0 1),
+            (1 1 0 1 1 1 0),
+            (1 1 1 0 0 1 1),
+            (1 1 1 1 1 0 0),
+            (1 0 1 1 1 1 0),
+            (1 1 1 1 0 1 0),
+            (1 1 0 1 1 0 1),
+            (0 1 1 1 1 1 0),
+            (1 0 0 1 1 1 1),
+            (1 1 0 1 0 1 1),
+            (1 0 1 1 1 0 1),
+            (0 1 0 1 1 1 1),
+            (1 1 1 1 0 0 1),
+            (0 1 1 1 1 0 1),
+            (1 0 1 1 0 1 1),
+            (0 1 1 1 0 1 1)
+        }
+    ],
+    [
+        {
+            (1 1 1 0 1 1 0),
+            (1 1 0 0 1 1 1),
+            (1 1 1 0 1 0 1),
+            (1 1 0 1 1 1 0),
+            (1 0 1 0 1 1 1),
+            (1 1 1 0 0 1 1),
+            (0 1 1 0 1 1 1),
+            (1 1 1 1 1 0 0),
+            (1 0 1 1 1 1 0),
+            (1 1 1 1 0 1 0),
+            (1 1 0 1 1 0 1),
+            (0 1 1 1 1 1 0),
+            (1 0 1 1 1 0 1),
+            (0 1 0 1 1 1 1),
+            (1 1 1 1 0 0 1),
+            (0 1 1 1 1 0 1),
+            (0 0 1 1 1 1 1),
+            (0 1 1 1 0 1 1)
+        }
+    ],
+    [
+        {
+            (1 1 1 0 1 1 0),
+            (1 1 0 1 1 1 0),
+            (1 0 1 0 1 1 1),
+            (1 1 1 0 0 1 1),
+            (0 1 1 0 1 1 1),
+            (1 1 1 1 1 0 0),
+            (1 0 1 1 1 1 0),
+            (1 1 1 1 0 1 0),
+            (0 1 1 1 1 1 0),
+            (1 0 0 1 1 1 1),
+            (1 1 0 1 0 1 1),
+            (1 0 1 1 1 0 1),
+            (0 1 0 1 1 1 1),
+            (1 1 1 1 0 0 1),
+            (0 1 1 1 1 0 1),
+            (1 0 1 1 0 1 1),
+            (0 0 1 1 1 1 1),
+            (0 1 1 1 0 1 1)
+        }
+    ],
+    [
+        {
+            (1 1 1 0 1 1 0),
+            (1 1 0 0 1 1 1),
+            (1 1 1 0 1 0 1),
+            (1 1 0 1 1 1 0),
+            (1 0 1 0 1 1 1),
+            (1 1 1 0 0 1 1),
+            (0 1 1 0 1 1 1),
+            (1 1 1 1 1 0 0),
+            (1 0 1 1 1 1 0),
+            (1 1 1 1 0 1 0),
+            (1 1 0 1 1 0 1),
+            (0 1 1 1 1 1 0),
+            (1 0 0 1 1 1 1),
+            (1 1 0 1 0 1 1),
+            (1 0 1 1 1 0 1),
+            (0 1 0 1 1 1 1),
+            (1 0 1 1 0 1 1),
+            (0 0 1 1 1 1 1)
+        }
+    ],
+    [
+        {
+            (1 1 0 0 1 1 1),
+            (1 1 1 0 1 0 1),
+            (1 1 0 1 1 1 0),
+            (1 0 1 0 1 1 1),
+            (0 1 1 0 1 1 1),
+            (1 1 1 1 1 0 0),
+            (1 0 1 1 1 1 0),
+            (1 1 0 1 1 0 1),
+            (0 1 1 1 1 1 0),
+            (1 0 0 1 1 1 1),
+            (1 1 0 1 0 1 1),
+            (1 0 1 1 1 0 1),
+            (0 1 0 1 1 1 1),
+            (1 1 1 1 0 0 1),
+            (0 1 1 1 1 0 1),
+            (1 0 1 1 0 1 1),
+            (0 0 1 1 1 1 1),
+            (0 1 1 1 0 1 1)
+        }
+    ]
+]
+[
+    [ 18 ],
+    [ 18 ],
+    [ 18 ],
+    [ 18 ],
+    [ 18 ],
+    [ 18 ]
+]
+6
+[
+    [
+        (1 0 1 0 0 0 1)
+    ],
+    [
+        (1 1 0 1 0 0 0)
+    ],
+    [
+        (0 1 1 0 1 0 0)
+    ],
+    [
+        (0 0 1 1 0 1 0)
+    ],
+    [
+        (1 0 0 0 1 1 0)
+    ],
+    [
+        (0 0 0 1 1 0 1)
+    ]
+]
+[
+    [
+        {
+            (1 0 1 1 1 1 1),
+            (1 1 1 0 1 1 1),
+            (1 1 1 1 1 1 0),
+            (1 1 0 1 1 1 1),
+            (1 1 1 1 1 0 1),
+            (1 1 1 1 0 1 1),
+            (0 1 1 1 1 1 1)
+        }
+    ],
+    [
+        {
+            (1 0 1 1 1 1 1),
+            (1 1 1 0 1 1 1),
+            (1 1 1 1 1 1 0),
+            (1 1 0 1 1 1 1),
+            (1 1 1 1 1 0 1),
+            (1 1 1 1 0 1 1),
+            (0 1 1 1 1 1 1)
+        }
+    ],
+    [
+        {
+            (1 0 1 1 1 1 1),
+            (1 1 1 0 1 1 1),
+            (1 1 1 1 1 1 0),
+            (1 1 0 1 1 1 1),
+            (1 1 1 1 1 0 1),
+            (1 1 1 1 0 1 1),
+            (0 1 1 1 1 1 1)
+        }
+    ],
+    [
+        {
+            (1 0 1 1 1 1 1),
+            (1 1 1 0 1 1 1),
+            (1 1 1 1 1 1 0),
+            (1 1 0 1 1 1 1),
+            (1 1 1 1 1 0 1),
+            (1 1 1 1 0 1 1),
+            (0 1 1 1 1 1 1)
+        }
+    ],
+    [
+        {
+            (1 0 1 1 1 1 1),
+            (1 1 1 0 1 1 1),
+            (1 1 1 1 1 1 0),
+            (1 1 0 1 1 1 1),
+            (1 1 1 1 1 0 1),
+            (1 1 1 1 0 1 1),
+            (0 1 1 1 1 1 1)
+        }
+    ],
+    [
+        {
+            (1 0 1 1 1 1 1),
+            (1 1 1 0 1 1 1),
+            (1 1 1 1 1 1 0),
+            (1 1 0 1 1 1 1),
+            (1 1 1 1 1 0 1),
+            (1 1 1 1 0 1 1),
+            (0 1 1 1 1 1 1)
+        }
+    ]
+]
+[
+    [ 7 ],
+    [ 7 ],
+    [ 7 ],
+    [ 7 ],
+    [ 7 ],
+    [ 7 ]
+]
+7
+[
+    [
+        (1 0 1 0 0 0 1)
+    ],
+    [
+        (1 1 0 1 0 0 0)
+    ],
+    [
+        (0 1 1 0 1 0 0)
+    ],
+    [
+        (0 0 1 1 0 1 0)
+    ],
+    [
+        (1 0 0 0 1 1 0)
+    ],
+    [
+        (0 0 0 1 1 0 1)
+    ]
+]
+[
+    [
+        {
+            (1 1 1 1 1 1 1)
+        }
+    ],
+    [
+        {
+            (1 1 1 1 1 1 1)
+        }
+    ],
+    [
+        {
+            (1 1 1 1 1 1 1)
+        }
+    ],
+    [
+        {
+            (1 1 1 1 1 1 1)
+        }
+    ],
+    [
+        {
+            (1 1 1 1 1 1 1)
+        }
+    ],
+    [
+        {
+            (1 1 1 1 1 1 1)
+        }
+    ]
+]
+[
+    [ 1 ],
+    [ 1 ],
+    [ 1 ],
+    [ 1 ],
+    [ 1 ],
+    [ 1 ]
+]
+
+////////////////////////////////////////////////
+
+//Function Support of a Set
+Supp:=function(Set)
+Su:={};
+for ss in Set do
+Su:=Su join Support(ss);
+end for;
+return Su;
+end function;
+
+Ball:=function(n,cw,r)
+B:={};
+for i:=1 to r do
+for c in VectorSpace(GF(2),n) do
+if Distance(cw,c) le r then
+ Include(~B,c);
+end if;
+end for;
+end for;
+return B;
+end function;
+Sphere:=function(n,cw,r)
+sp:={};
+for c in VectorSpace(GF(2),n) do
+if Distance(cw,c) eq r then
+ Include(~sp,c);
+end if;
+end for;
+return sp;
+end function;
+C:=HammingCode(GF(2),3);
+c:=Random(C);
+A:=Ball(7,c,1);
+#A;
+WeightDistribution(C);
+c4:=WordsOfBoundedWeight(C,4,4);
+z:=C!0;
+Random(c4);
+#(Sphere(7,z,2) meet Ball(7,Random(c4),2));
+c3:=WordsOfBoundedWeight(C,3,3);
+Random(c3);
+#(Sphere(7,z,2) meet Ball(7,Random(c3),2));
+#(Sphere(7,z,2));
+
+T:={};
+for c in C do// calculating any intersection with 0 centered sphere
+if c ne z then
+T:=T join (Sphere(Length(C),z,2) meet Ball(Length(C),c, 2));
+end if;
+end for;
+T1:=T;
+c4;
+conjm:={};
+
+
+for c in c3 do //calculating weight 3 intersection with 0 centered sphere
+c;
+sc:=(Sphere(Length(C),z,2) meet Ball(Length(C),c, 2));
+if sc ne {} then
+Include(~conjm,c);
+#(sc meet T1);
+T1:=T1 diff sc;
+end if;
+end for;
+T1;
+conjm;
+#Ball(7,z,2);
+
+for c in c4 do //calculating weight 4 intersection with 0 centered sphere
+c;
+sc:=(Sphere(Length(C),z,2) meet Ball(Length(C),c, 2));
+if sc subset T1 and sc ne {} then
+Include(~conjm,c);
+#sc;
+T1:=T1 diff sc;
+end if;
+end for;
+T1;
+// to establish if subcodes with minimum support also cover the 2-2 intersections and if so if all of them are needed
+t:=2;// defined radius for spheres and balls
+mw:=WordsOfBoundedWeight(C,3,4);//MinimumWords(C);
+T2:={};
+for c in C do// calculating any intersection with 0 centered sphere
+for cc in C do
+if c ne z and c ne cc then
+T2:=T2 join (Sphere(Length(C),z,t) meet (Ball(Length(C),c, t) meet Ball(Length(C),cc, t)));
+end if;
+end for;
+end for;
+T1:=T2;
+conjm:={};
+conjc2m:={};
+//Sets of minimal support subcodes of dimension 2
+z:=C!0;
+conjm2:={};
+TP:={};
+for c in C do
+for cc in C do 
+if  c ne z and cc ne z and c ne cc then 
+Ge:=ZeroMatrix(GF(2),1,Length(C));
+	Ge:=VerticalJoin(Ge,c);
+		Ge:=VerticalJoin(Ge,cc);
+		C2:=LinearCode(Ge);
+SS:=Supp(C2);
+if #SS lt 5 then
+C2;
+end if;
+if #SS eq 5 then 
+if C2 in conjc2m then
+else
+Include(~conjm2,[c,cc]);
+Include(~conjc2m,C2);
+TP:=TP join (Sphere(Length(C),z,t) meet (Ball(Length(C),c, t) meet Ball(Length(C),cc, t)));
+end if;
+end if;
+
+end if;
+end for;
+end for;
+
+///to test on the Golay code
+C:=GolayCode(GF(2),false);
+z:=C!0;
+T:={};
+for c in C do// calculating any intersection with 0 centered sphere
+if c ne z then
+T:=T join (Spherec(Length(C),C,z,4) meet Ballc(Length(C),C,c, 4));
+end if;
+end for;
+#T;
+
+
+

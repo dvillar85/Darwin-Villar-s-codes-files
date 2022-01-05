@@ -1,0 +1,201 @@
+//Calculate generalized weight distribution of given Code with all the codewords
+
+Supp:=function(Set)
+Su:={};
+for ss in Set do
+Su:=Su join Support(ss);
+end for;
+return Su;
+end function;
+
+Choose:=function(Set,n)//It is not convenient
+for i:=1 to do
+
+end for;
+if n eq 1
+Seq:=[];
+SC:=[];
+num:=n;
+c:=Random(Set);
+num:=num-1;
+Seq[n-num]:=c;
+Sett:=Exclude(Set,c);
+
+return Sett, c;
+end function; 
+
+C:=GolayCode(GF(2),false);
+C:=HammingCode(GF(2),3);//test with hamming code
+z:=C!0;
+Co:={};// Code turned into Set
+for c in C do 
+if c ne z then
+ Include(~Co,c);
+end if;
+end for;
+for i:=1 to Dimension(C) do
+while d
+end while;
+end for;
+
+
+//test with hamming code real
+C:=HammingCode(GF(2),3);//test with hamming code
+z:=C!0;
+Co:=[];// Code turned into Sequence
+pos:=[];
+vec:=[];
+for c in C do 
+	if c ne z then
+	 Append(~Co,c);
+	end if;
+end for;
+for i:=1 to Dimension(C) do // runs all the dimensions for the subcodes
+t:=Length(C);// initial support considered that should be reduced with the search done
+cont:={};//initializing set of codes with minimum support of dimension i
+	pos[1]:=1; // starting position for the most significant vector or initial vector
+//	swi:=1;//to check if it is required only one time to do the initial setting of the positions.
+//	if
+	for l:=2 to i do //only the first time
+	pos[l]:=pos[l-1]+1;// position one higher than the previous since we consider combinations and not permutations, to avoid redundance
+	end for;
+	sw2:=1;
+	while pos[1] le (#Co-i+1) and sw2 eq 1 do // controls the general switch, ending when the first position is the highest possible the switch is to higher dimensions control of the while.  
+			
+		nv:=1;// number of vectors
+		vec[nv]:=Co[pos[nv]];//vectors chosen
+		if i eq 1 then // checks for dimension 1 the process
+
+			M:=ZeroMatrix(GF(2),1,Length(C));
+			M:=VerticalJoin(M,vec[1]);
+			Ct:=LinearCode(M);
+			te:=#Supp(Ct);
+			if te lt t then
+				t:=te;
+				cont:={};
+			end if;
+			if te eq t then
+				Include(~cont,Ct);
+				//[i,#cont,t];
+			end if;
+			pos[1]:=pos[1]+1;
+		end if;
+
+		while (nv lt i) do // checks for higher dimensions
+			nv:=nv+1;// pointer to the next vector
+			vec[nv]:=Co[pos[nv]];//vector of such position
+			if nv eq i then//if the vector considered is the last one checks if it got to the bottom of the pile
+				if pos[nv] eq #Co then //checks last column reached the bottom ***
+					j:=1;sw:=1;// process to assing the right position of the vectors and reset the columns when needed
+					while (sw eq 1) do// finds the last column to be reaching bottom and that it is not the first column in which case it has finished and (j ne nv-1)
+						if pos[nv-j] eq #Co-j then//checks if it is reaching bottom and also the previous one if so does allow to continue searching unless is the first col
+							if j eq nv-1 then// ends the loop too if the first column reaches the bottom
+								sw:=0;
+							end if;
+							j:=j+1;	
+						else// if not then changes the previous one that isn't and sets the next columns increasingly
+							pos[nv-j]:=pos[nv-j]+1;//increases in one the last non ending column and set to do so with respect to it the others
+							sw:=0;//Ends the search
+							for l:= 1 to j do // this is the resetting of the next ones.
+							pos[nv-j+l]:=pos[nv-j+l-1]+1;//by assinging the value of the resetted column plus one with each step decreasing one further
+							end for;
+						end if;
+					end while;  
+						
+
+//****
+				else
+				pos[nv]:=pos[nv]+1;//if the last vector is not the last possible increases the position and starts the matrix building process
+				end if;
+				//Now with the i vectors chosen we check the subcode they generate
+				M:=ZeroMatrix(GF(2),1,Length(C));
+				for j:=1 to nv do // construction of the matrix
+					M:=VerticalJoin(M,vec[j]);
+				end for;
+				
+			sw2:=0;//assumes it reaches the last combination	
+		for k:=0 to i-1 do
+		if pos[nv-k] ne #Co-k then //checks if it can still run
+			sw2:=1;
+		end if;
+		end for;
+				if Rank(M) eq i then //check if the rank is equal to the expected dimension
+					Ct:=LinearCode(M);
+					te:=#Supp(Ct);
+					if te lt t then
+						t:=te;
+						cont:={};
+					end if;
+					if te eq t then
+						Include(~cont,Ct);
+						//[i,#cont,t];
+					end if;
+				end if;
+			end if;
+		end while;// while que construye el conjunto de vectores a considerar
+	
+	end while;//while que permite buscar todas las posibilidades
+PrintFileMagma("DimensCGol",[i,#cont,t]);
+
+end for;
+
+
+
+
+//Calculate generalized weight distribution of given Code using the codewords of minimum weight
+
+Supp:=function(Set)
+Su:={};
+for ss in Set do
+Su:=Su join Support(ss);
+end for;
+return Su;
+end function;
+
+C:=GolayCode(GF(2),false);
+z:=C!0;
+Co:=MinimumWords(C);// Taking from the Code the Set of minimum words
+
+
+pos[1]:=2^Dimension(C)-1;
+cont:=1;
+for i:=1 to Dimension(C) do // subspace dimension
+while Conj[1] ne {} do //shows when the process ends completely working with the codewords as a sequence
+
+while cont le i do // constructs the set of vectors that generate the i dimensional subspace
+//for f in Conj[1] do // goes through all the options for the most significant vector 
+//end for;
+c:=Random(Conj[cont]);
+Seq[cont]:=c;
+for j:=1 to cont do
+Conj[cont+1]:=C
+end for;
+end while;
+
+end while;
+end for;
+
+
+S[1]:=C;
+S[2]:=C;
+a:=1;
+for f in S[a] do
+a:=2;
+end for;
+
+
+
+///*** texto borrado
+for j:= 1 to nv-1 do //searches for the first pile to be ending (should search the last one)
+						if (pos[nv-j] eq #Co-j) and (nv-j ne 1) then //finds the one ending and reduces the previous one to reset the rest decreasingly and excludes when the one getting to the bottom is the first position in which case the process is ended too
+							pos[nv-j-1]:=pos[nv-j-1]+1;//this is the decreasing in one of the previous one
+							for l:= 1 to j do // this is the resetting of the next ones.
+								pos[nv-j-1+l]:=pos[nv-j+l-2]+1;//by assinging the value of the resetted column plus one with each step decreasing one further no llevaba -2
+							end for;
+							break;// avoids to go back further than required tenía break
+						else
+						pos[nv-1]:=pos[nv-1]+1;
+						pos[nv]:=pos[nv-1]+1;
+						end if;
+					end for;
+
