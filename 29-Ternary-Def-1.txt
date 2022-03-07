@@ -1,0 +1,110 @@
+R<x>:=PolynomialRing(GF(3)); z:=R ! x^29-1; I:=ideal<R | z>;
+U<x>:=quo<R | I>;
+
+
+
+e:=U!(2+x+x^2+x^3+x^4+x^5+x^6+x^7+x^8+x^9+x^(10)+x^(11)+x^(12)+x^(13)+x^(14)+x^(15)
++x^(16)+x^(17)+x^(18)+x^(19)+x^(20)+x^(21)+x^(22)+x^(23)+x^(24)+x^(25)+x^(26)+x^(27)+x^(28));
+
+//primitive element
+u:=U !x^28+x^27+x^26 + x ^ 25 + x ^ 24 + x ^ 23 + x^22+x^21+x^20 +
+x^19+x^18+x^17+x^16+x^15+x^14+x^13+x^12+x^11+x^10+x^9+x^8+x^7+x^6+
+x^5+x^4+x^3+2*x^2+2*x;
+
+(3^14-1))/2;
+
+(29*(3^14-1))/2; b:=u^69353036;
+
+V29:=VectorSpace(GF(3),29); function potvec(p)
+    v:=Zero(V29);
+    a:=Eltseq(p);
+    for i:=1 to #a do
+    v[i]:=GF(3) !a[i];
+    end for;
+    return v;
+end function;
+
+
+
+
+
+
+
+function Gen(t) G:=Matrix(GF(3),30, 60,[]); for i:=1 to 29 do
+    G[1,i]:=1;  G[1,29+i]:=0;
+    G[2,i]:=0;  G[2,29+i]:=1;
+end for; G[1,59]:=1; G[1,60]:=0; G[2,59]:=0; G[2,60]:=1;
+
+vbt:=b^t; ve:=e; for i:=3 to 30 do
+    for j:=1 to 29 do
+        vece:=potvec(ve);
+        vecbt:=potvec(vbt);
+        G[i,j]:= vece[j]; G[i,29+j]:=vecbt[j];
+    end for;
+    ve:=x*ve;
+    vbt:=x*vbt;
+end for; return G; end function;
+
+
+
+function Ct(t) G:=Matrix(GF(3),30, 60,[]); for i:=1 to 29 do
+    G[1,i]:=1;  G[1,29+i]:=0;
+    G[2,i]:=0;  G[2,29+i]:=1;
+end for; G[1,59]:=0; G[1,60]:=1; G[2,59]:=1; G[2,60]:=0;
+
+vbt:=b^t; ve:=e; for i:=3 to 30 do
+    for j:=1 to 29 do
+        vece:=potvec(ve);
+        vecbt:=potvec(vbt);
+        G[i,j]:= vece[j]; G[i,29+j]:=vecbt[j];
+    end for;
+    ve:=x*ve;
+    vbt:=x*vbt;
+end for; C:=LinearCode(G); return C; end function;
+
+
+
+
+function cycls(p); pZ:=Integers(p); Sp:=Modorder(3,p); Classes:=
+Sort(Setseq({Sort(Setseq({s*3^i : i in [1..Sp]})) : s in pZ }));
+Classes:=Exclude( Classes ,[0]); T:=[* *]; for i:=1 to #Classes do
+    T:=T cat [*Classes[i,1]*];
+end for;
+return T;
+end function;
+
+
+
+
+
+((3^14+1)*2)/29;
+
+T:=cycls(329860); print #T;
+    Kl:={ };
+ for i:=1 to #T do
+    t:=Integers() ! T[i];
+
+ Kl:=Kl join {t};
+end for;
+
+Kl:=Setseq(Kl);
+
+
+E:={x: x in [1..29]| 3^x mod 29 eq 1};
+
+D:={x: x in Kl| MinimumWeight(Ct(x)) eq 18};
+
+[ 181423, 16493, 2261, 1031, 82465 ]
+
+
+D:=Setseq(D);
+
+W1:={u:u in D|IsEquivalent(Ct(D[1]), Ct(u))};
+
+W2:=Seqset(D) diff W1;
+
+W3:={u:u in W2| IsEquivalent(Ct(Setseq(W2[1])))};
+
+
+
+R:=Kl diff {x: x in Kl| x mod 2 eq 0};
